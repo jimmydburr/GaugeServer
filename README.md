@@ -12,3 +12,7 @@ Simply git clone this directory somewhere
 
 Now point your browser at http://localhost:8080 and enjoy the show.
 
+## Current Status
+
+Not even Alpha yet. Currently only 'graphing' the first CPU and Free Memory. Plans are to expand to looking at all available CPUs, etc. Pull Requests welcomed.
+
