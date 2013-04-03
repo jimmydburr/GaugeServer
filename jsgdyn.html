@@ -51,23 +51,29 @@
 
 	<script type="text/javascript">
 
-	  var socket = io.connect('http://localhost:8080');
-	  socket.on('setup_msg', function(setup_obj) {
-	    console.log('setup_obj', setup_obj);
-	    var p = document.createElement("p");
-	    var ptext = document.createTextNode(JSON.stringify(setup_obj));
-	    p.appendChild(ptext);
-	    document.body.appendChild(p);
-	  });
 
 	var csi_timer = new window.jstiming.Timer();
 	csi_timer.name = 'docs_gauge';
 
-	google.setOnLoadCallback(drawChart);
+	google.setOnLoadCallback(function () {
+
+		var socket = io.connect('http://localhost:8080');
+		socket.on('setup_msg', function(setup_obj) {
+			console.log('setup_obj', setup_obj);
+			console.log('socket: ' + Date.now());
+			var p = document.createElement("p");
+			var ptext = document.createTextNode(JSON.stringify(setup_obj));
+			p.appendChild(ptext);
+			document.body.appendChild(p);
+			drawChart();
+		});
+
+	});
 
 	function drawChart() {
 	  csi_timer.tick('load');
 
+	  console.log('drawChart: ' + Date.now());
 	  var data = new google.visualization.DataTable();
 	  data.addColumn('string', 'Label');
 	  data.addColumn('number', 'Value');
