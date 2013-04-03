@@ -59,7 +59,7 @@
 
 		var socket = io.connect('http://localhost:8080');
 		socket.on('setup_msg', function(setup_obj) {
-			console.log('setup_obj', setup_obj);
+			console.log('setup_obj', setup_obj); //test for timing
 			console.log('socket: ' + Date.now());
 			var p = document.createElement("p");
 			var ptext = document.createTextNode(JSON.stringify(setup_obj));
