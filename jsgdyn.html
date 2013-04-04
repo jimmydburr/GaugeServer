@@ -59,18 +59,18 @@
 
 		var socket = io.connect('http://localhost:8080');
 		socket.on('setup_msg', function(setup_obj) {
-			console.log('setup_obj', setup_obj); //test for timing
-			console.log('socket: ' + Date.now());
+			console.log('setup_obj', setup_obj);
+			console.log('socket: ' + Date.now());	//test for timing
 			var p = document.createElement("p");
 			var ptext = document.createTextNode(JSON.stringify(setup_obj));
 			p.appendChild(ptext);
 			document.body.appendChild(p);
-			drawChart();
+			drawChart(socket);
 		});
 
 	});
 
-	function drawChart() {
+	function drawChart(socket) {
 	  csi_timer.tick('load');
 
 	  console.log('drawChart: ' + Date.now());
