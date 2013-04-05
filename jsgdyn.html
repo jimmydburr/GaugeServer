@@ -60,7 +60,6 @@
 		var socket = io.connect('http://localhost:8080');
 		socket.on('setup_msg', function(setup_obj) {
 			console.log('setup_obj in client', setup_obj);
-			console.log('socket: ' + Date.now());	//test for timing
 			var p = document.createElement("p");
 			var ptext = document.createTextNode(JSON.stringify(setup_obj));
 			p.appendChild(ptext);
@@ -70,11 +69,13 @@
 
 	});
 
-	function drawChart(socket, mySetupObj) {
-		console.log('mySetupObj: ' + mySetupObj);
+	function drawChart(socket, setup_obj) {
 	  csi_timer.tick('load');
+	  for (var i = 0, l = setup_obj.cpus.length; i < l; i ++) {
+	  	console.log('cpu: ' + setup_obj.cpus[i].times.idle);
+	  }
+	  console.log('cpu0: ' + setup_obj.cpus[0].model);
 
-	  console.log('drawChart: ' + Date.now());
 	  var data = new google.visualization.DataTable();
 	  data.addColumn('string', 'Label');
 	  data.addColumn('number', 'Value');
