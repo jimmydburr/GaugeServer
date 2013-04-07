@@ -60,10 +60,10 @@
 		var socket = io.connect('http://localhost:8080');
 		socket.on('setup_msg', function(setup_obj) {
 			console.log('setup_obj in client', setup_obj);
-			var p = document.createElement("p");
-			var ptext = document.createTextNode(JSON.stringify(setup_obj));
-			p.appendChild(ptext);
-			document.body.appendChild(p);
+			//var p = document.createElement("p");
+			//var ptext = document.createTextNode(JSON.stringify(setup_obj));
+			//p.appendChild(ptext);
+			//document.body.appendChild(p);
 			drawChart(socket, setup_obj);
 		});
 
@@ -71,21 +71,18 @@
 
 	function drawChart(socket, setup_obj) {
 	  csi_timer.tick('load');
-	  for (var i = 0, l = setup_obj.cpus.length; i < l; i ++) {
-	  	console.log('cpu: ' + setup_obj.cpus[i].times.idle);
-	  }
-	  console.log('cpu0: ' + setup_obj.cpus[0].model);
 
 	  var data = new google.visualization.DataTable();
 	  data.addColumn('string', 'Label');
 	  data.addColumn('number', 'Value');
-	  data.addRows(3);
-	  data.setValue(0, 0, 'CPU');
-	  data.setValue(0, 1, 0);
-	  data.setValue(1, 0, 'IDLE');
-	  data.setValue(1, 1, 0);
-	  data.setValue(2, 0, 'FreeMem');
-	  data.setValue(2, 1, 0);
+	  data.addRows(setup_obj.cpus.length * 2);
+	  for (var i = 0, l = setup_obj.cpus.length * 2; i < l; i = i + 2) {
+		column = i + 1;
+		data.setValue(i, 0, 'CPU');
+		data.setValue(i, 1, 0);
+		data.setValue(column, 0, 'IDLE');
+		data.setValue(column, 1, 0);
+	  }
 
 	  csi_timer.tick('data');
 
@@ -104,12 +101,10 @@
 
 	  socket.on('broadcast_msg', function(mydata) {
 	    console.log('Got broadcast_msg.', mydata);
-	    console.log(mydata.cpu);
-	    console.log(mydata.idle);
-	    console.log(mydata.memory);
-	    data.setValue(0, 1, Math.round(mydata.cpu));
-	    data.setValue(1, 1, Math.round(mydata.idle));
-	    data.setValue(2, 1, Math.round(mydata.memory));
+		for (var i = 0, l = mydata.cpus.length; i < l; i ++) {
+			data.setValue(i, 1, mydata.cpus[i].usage.busy);
+			data.setValue(i + 1, 1, mydata.cpus[i].usage.idle);
+		}
 	    chart.draw(data, options);
 	  //throw '';
 	  });

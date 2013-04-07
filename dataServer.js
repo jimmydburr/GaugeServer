@@ -6,8 +6,10 @@ var app = require('http').createServer(handler),
 
 var updateInterval = 1000;	// in milliseconds
 var memToGB = 1024 * 1024 * 1024;	// convert bytes to gigs
+var cpus = new Array();
 var myData = new Object;
 var setup_obj = new Object;
+var usage = new Object;
 
 setup_obj.hostname = os.hostname();
 setup_obj.platform = os.platform();
@@ -39,23 +41,33 @@ function handler (req, res) {
 io.sockets.on('connection', function(socket) {
 	socket.emit('setup_msg', setup_obj);
 	// count the cpus and loop through them
-	var earliestIdle = os.cpus()[0].times.idle;
-	var start = Date.now();
-	sleep.usleep(updateInterval * 100);
-	var latestIdle = os.cpus()[0].times.idle;
-	var end = Date.now();
-	myData.idle = Math.round((latestIdle - earliestIdle) / updateInterval * 100);
-	myData.cpu = 100 - myData.idle;
-	myData.memory = Math.round(os.freemem() / memToGB);
+	for (var i = 0, l = setup_obj.cpus.length; i < l; i ++) {
+		var earliestIdle = os.cpus()[i].times.idle;
+		sleep.usleep(updateInterval * 100);
+		var latestIdle = os.cpus()[i].times.idle;
+		idle = Math.round((latestIdle - earliestIdle) / updateInterval * 100);
+		busy = 100 - idle;
+		//console.log(busy,idle);
+		cpus[i] = {usage: {busy: busy, idle: idle}};
+	}
+	//console.log(cpus);
+	myData.cpus = cpus;
 	// ok kick things off in the browser
 	socket.emit('broadcast_msg', myData);
 
 	setInterval(function() {
-		earliestIdle = latestIdle;
-		latestIdle = os.cpus()[0].times.idle;
-		myData.idle = Math.round((latestIdle - earliestIdle) / updateInterval * 100);
-		myData.cpu = 100 - myData.idle;
-		myData.memory = Math.round(os.freemem() / memToGB);
+		for (var i = 0, l = setup_obj.cpus.length; i < l; i ++) {
+			earliestIdle = latestIdle;
+			console.log('earliestIdle: ' + earliestIdle);
+			latestIdle = os.cpus()[i].times.idle;
+			console.log('latestIdle: ' + latestIdle);
+			usage.idle = Math.round((latestIdle - earliestIdle) / updateInterval * 100);
+			console.log('current idle: ' + usage.idle);
+			usage.busy = 100 - usage.idle;
+			console.log('cpu =' + usage.idle + ' ' + usage.busy);
+			cpus[i] = usage;
+		}
+		myData.cpus = cpus;
 		io.sockets.volatile.emit('broadcast_msg', myData);
 	}, updateInterval);
 });
