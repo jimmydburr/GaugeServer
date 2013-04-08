@@ -102,8 +102,12 @@
 	  socket.on('broadcast_msg', function(mydata) {
 	    console.log('Got broadcast_msg.', mydata);
 		for (var i = 0, l = mydata.cpus.length; i < l; i ++) {
+			//console.log('in for: i = ' + i + ', l = ' + l);
+			column = i + 1;
 			data.setValue(i, 1, mydata.cpus[i].usage.busy);
-			data.setValue(i + 1, 1, mydata.cpus[i].usage.idle);
+			console.log('cpu idle/busy = ' + mydata.cpus[i].usage.idle + ' ' + mydata.cpus[i].usage.busy);
+			data.setValue(column, 1, mydata.cpus[i].usage.idle);
+			//data.setValue(column, 1, 89);
 		}
 	    chart.draw(data, options);
 	  //throw '';

@@ -39,33 +39,32 @@ function handler (req, res) {
 }
 // create a websocket
 io.sockets.on('connection', function(socket) {
+	var earliestIdle = new Array();
+	var latestIdle = new Array();
+
 	socket.emit('setup_msg', setup_obj);
 	// count the cpus and loop through them
 	for (var i = 0, l = setup_obj.cpus.length; i < l; i ++) {
-		var earliestIdle = os.cpus()[i].times.idle;
+		earliestIdle[i] = os.cpus()[i].times.idle;
 		sleep.usleep(updateInterval * 100);
-		var latestIdle = os.cpus()[i].times.idle;
-		idle = Math.round((latestIdle - earliestIdle) / updateInterval * 100);
+		latestIdle[i] = os.cpus()[i].times.idle;
+		idle = Math.round((latestIdle[i] - earliestIdle[i]) / updateInterval * 100);
 		busy = 100 - idle;
 		//console.log(busy,idle);
 		cpus[i] = {usage: {busy: busy, idle: idle}};
 	}
-	//console.log(cpus);
 	myData.cpus = cpus;
 	// ok kick things off in the browser
 	socket.emit('broadcast_msg', myData);
 
 	setInterval(function() {
 		for (var i = 0, l = setup_obj.cpus.length; i < l; i ++) {
-			earliestIdle = latestIdle;
-			console.log('earliestIdle: ' + earliestIdle);
-			latestIdle = os.cpus()[i].times.idle;
-			console.log('latestIdle: ' + latestIdle);
-			usage.idle = Math.round((latestIdle - earliestIdle) / updateInterval * 100);
-			console.log('current idle: ' + usage.idle);
-			usage.busy = 100 - usage.idle;
-			console.log('cpu =' + usage.idle + ' ' + usage.busy);
-			cpus[i] = usage;
+			earliestIdle[i] = latestIdle[i];
+			latestIdle[i] = os.cpus()[i].times.idle;
+			idle = Math.round((latestIdle[i] - earliestIdle[i]) / updateInterval * 100);
+			busy = 100 - idle;
+			console.log('cpu idle/busy = ' + usage.idle + ' ' + usage.busy);
+			cpus[i] = {usage: {busy: busy, idle: idle}};
 		}
 		myData.cpus = cpus;
 		io.sockets.volatile.emit('broadcast_msg', myData);
