@@ -43,7 +43,7 @@ io.sockets.on('connection', function(socket) {
 	var latestIdle = new Array();
 
 	socket.emit('setup_msg', setup_obj);
-	// count the cpus and loop through them
+	// prime the pump by getting the first busy, idle data in the cpus array
 	for (var i = 0, l = setup_obj.cpus.length; i < l; i ++) {
 		earliestIdle[i] = os.cpus()[i].times.idle;
 		sleep.usleep(updateInterval * 100);
@@ -57,13 +57,12 @@ io.sockets.on('connection', function(socket) {
 	// ok kick things off in the browser
 	socket.emit('broadcast_msg', myData);
 
-	setInterval(function() {
+	setInterval(function() {	// now collect and calc busy, idle data every updateInterval
 		for (var i = 0, l = setup_obj.cpus.length; i < l; i ++) {
 			earliestIdle[i] = latestIdle[i];
 			latestIdle[i] = os.cpus()[i].times.idle;
 			idle = Math.round((latestIdle[i] - earliestIdle[i]) / updateInterval * 100);
 			busy = 100 - idle;
-			console.log('cpu idle/busy = ' + usage.idle + ' ' + usage.busy);
 			cpus[i] = {usage: {busy: busy, idle: idle}};
 		}
 		myData.cpus = cpus;

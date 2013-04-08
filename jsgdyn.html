@@ -50,69 +50,57 @@
 	</script>
 
 	<script type="text/javascript">
+		var csi_timer = new window.jstiming.Timer();
+		csi_timer.name = 'docs_gauge';
 
-
-	var csi_timer = new window.jstiming.Timer();
-	csi_timer.name = 'docs_gauge';
-
-	google.setOnLoadCallback(function () {
-
-		var socket = io.connect('http://localhost:8080');
-		socket.on('setup_msg', function(setup_obj) {
-			console.log('setup_obj in client', setup_obj);
-			//var p = document.createElement("p");
-			//var ptext = document.createTextNode(JSON.stringify(setup_obj));
-			//p.appendChild(ptext);
-			//document.body.appendChild(p);
-			drawChart(socket, setup_obj);
+		google.setOnLoadCallback(function () {
+			var socket = io.connect('http://localhost:8080');
+			socket.on('setup_msg', function(setup_obj) {
+				console.log('setup_obj in client', setup_obj);
+				//var p = document.createElement("p");
+				//var ptext = document.createTextNode(JSON.stringify(setup_obj));
+				//p.appendChild(ptext);
+				//document.body.appendChild(p);
+				drawChart(socket, setup_obj);
+			});
 		});
 
-	});
+		function drawChart(socket, setup_obj) {
+			csi_timer.tick('load');
+			var data = new google.visualization.DataTable();
+			data.addColumn('string', 'Label');
+			data.addColumn('number', 'Value');
+			data.addRows(setup_obj.cpus.length * 2);
+			for (var i = 0, l = setup_obj.cpus.length * 2; i < l; i = i + 2) {
+				column = i + 1;
+				data.setValue(i, 0, 'CPU');
+				data.setValue(i, 1, 0);
+				data.setValue(column, 0, 'IDLE');
+				data.setValue(column, 1, 0);
+			}
 
-	function drawChart(socket, setup_obj) {
-	  csi_timer.tick('load');
+			csi_timer.tick('data');
+			var chart = new google.visualization.Gauge(document.getElementById('chart_div'));
+			csi_timer.tick('new');
+			var options = {width: 800, height: 300, redFrom: 90, redTo: 100,
+							yellowFrom:75, yellowTo: 90, minorTicks: 5};
+			chart.draw(data, options);
+			csi_timer.tick('draw');
+			window.jstiming.report(csi_timer);
+			chart.draw(data, options);
 
-	  var data = new google.visualization.DataTable();
-	  data.addColumn('string', 'Label');
-	  data.addColumn('number', 'Value');
-	  data.addRows(setup_obj.cpus.length * 2);
-	  for (var i = 0, l = setup_obj.cpus.length * 2; i < l; i = i + 2) {
-		column = i + 1;
-		data.setValue(i, 0, 'CPU');
-		data.setValue(i, 1, 0);
-		data.setValue(column, 0, 'IDLE');
-		data.setValue(column, 1, 0);
-	  }
-
-	  csi_timer.tick('data');
-
-	  var chart = new google.visualization.Gauge(document.getElementById('chart_div'));
-
-	  csi_timer.tick('new');
-
-	  var options = {width: 450, height: 210, redFrom: 90, redTo: 100,
-					yellowFrom:75, yellowTo: 90, minorTicks: 5};
-	  chart.draw(data, options);
-
-	  csi_timer.tick('draw');
-	  window.jstiming.report(csi_timer);
-
-	  chart.draw(data, options);
-
-	  socket.on('broadcast_msg', function(mydata) {
-	    console.log('Got broadcast_msg.', mydata);
-		for (var i = 0, l = mydata.cpus.length; i < l; i ++) {
-			//console.log('in for: i = ' + i + ', l = ' + l);
-			column = i + 1;
-			data.setValue(i, 1, mydata.cpus[i].usage.busy);
-			console.log('cpu idle/busy = ' + mydata.cpus[i].usage.idle + ' ' + mydata.cpus[i].usage.busy);
-			data.setValue(column, 1, mydata.cpus[i].usage.idle);
-			//data.setValue(column, 1, 89);
+			socket.on('broadcast_msg', function(mydata) {
+				console.log('Got broadcast_msg.', mydata);
+				for (var i = 0, l = mydata.cpus.length; i < l; i++) {
+					//console.log('in for: i = ' + i + ', l = ' + l);
+					console.log('cpu idle/busy = ' + mydata.cpus[i].usage.idle + ' ' + mydata.cpus[i].usage.busy);
+					data.setValue(i * 2, 1, mydata.cpus[i].usage.busy);
+					data.setValue(i * 2 + 1, 1, mydata.cpus[i].usage.idle);
+					//data.setValue(column, 1, 89);
+				}
+				chart.draw(data, options);
+			});
 		}
-	    chart.draw(data, options);
-	  //throw '';
-	  });
-	}
 	</script>
   </body>
 </html>
