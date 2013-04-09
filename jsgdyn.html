@@ -8,7 +8,12 @@
   </head>
 
   <body>
+	<div id='machine'>
+		<h2 id='cpuAnchor'>CPU</h2>
+	</div>
     <div id='chart_div'></div>
+	<div id='info'></div>
+
     <script type="text/javascript">
 		function Timer() {
 			this.t = {};
@@ -53,14 +58,37 @@
 		var csi_timer = new window.jstiming.Timer();
 		csi_timer.name = 'docs_gauge';
 
+		function insertAfter(new_node, existing_node) {
+			if (existing_node.nextSibling) {
+				existing_node.parentNode.insertBefore(new_node, existing_node.nextSibling);
+			} else {
+				existing_node.parentNode.appendChild(new_node);
+			}
+		} // insertAfter()
+
 		google.setOnLoadCallback(function () {
 			var socket = io.connect('http://localhost:8080');
 			socket.on('setup_msg', function(setup_obj) {
 				console.log('setup_obj in client', setup_obj);
-				//var p = document.createElement("p");
-				//var ptext = document.createTextNode(JSON.stringify(setup_obj));
-				//p.appendChild(ptext);
-				//document.body.appendChild(p);
+
+				var cpuh2 = document.getElementById("cpuAnchor");
+				var parentDiv = cpuh2.parentNode;
+				var h1 = document.createElement("h1");
+				var h1text = document.createTextNode(setup_obj.hostname);
+				h1.appendChild(h1text);
+				parentDiv.insertBefore(h1,cpuh2);
+
+				var p = document.createElement("p");
+				var ptext = document.createTextNode('Machine Type: ' + setup_obj.type + ', Release: ' + setup_obj.release);
+				p.appendChild(ptext);
+				parentDiv.insertBefore(p,cpuh2);
+
+				var h2 = document.createElement("h2");
+				var h2text = document.createTextNode('Uptime: ' + setup_obj.uptime);
+				h2.appendChild(h2text);
+				parentDiv = document.getElementById("info");
+				parentDiv.appendChild(h2);
+
 				drawChart(socket, setup_obj);
 			});
 		});
