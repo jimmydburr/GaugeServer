@@ -1,6 +1,6 @@
 var app = require('http').createServer(handler),
 	fs = require('fs'),
-	os=require('os'),
+	os = require('os'),
 	sleep = require('sleep'),
 	io = require('socket.io').listen(app);
 
@@ -27,7 +27,7 @@ app.listen(8080);
 
 function handler (req, res) {
 	// upon first connect send the client code
-	fs.readFile(__dirname + '/jsgdyn.html', function (err, data){
+	fs.readFile(__dirname + '/jsgdyn.html', function (err, data) {
 		if (err) {
 			console.log (err);
 			res.writeHead(500);
