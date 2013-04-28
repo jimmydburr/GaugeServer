@@ -6,10 +6,10 @@ var app = require('http').createServer(handler),
 
 var updateInterval = 1000;	// in milliseconds
 var memToGB = 1024 * 1024 * 1024;	// convert bytes to gigs
-var cpus = new Array();
-var myData = new Object;
-var setup_obj = new Object;
-var usage = new Object;
+var cpus = [];
+var myData = {};
+var setup_obj = {};
+var usage = {};
 
 setup_obj.hostname = os.hostname();
 setup_obj.platform = os.platform();
@@ -25,6 +25,19 @@ setup_obj.loadavg = os.loadavg();
 
 app.listen(8080);
 
+function convertMS(ms) {
+  var d, h, m, s;
+  s = Math.floor(ms / 1000);
+  m = Math.floor(s / 60);
+  s = s % 60;
+  h = Math.floor(m / 60);
+  m = m % 60;
+  d = Math.floor(h / 24);
+  h = h % 24;
+  return { d: d, h: h, m: m, s: s };
+}
+console.log(convertMS(setup_obj.uptime * 1000));
+throw '';
 function handler (req, res) {
 	// upon first connect send the client code
 	fs.readFile(__dirname + '/jsgdyn.html', function (err, data) {
@@ -39,8 +52,8 @@ function handler (req, res) {
 }
 // create a websocket
 io.sockets.on('connection', function(socket) {
-	var earliestIdle = new Array();
-	var latestIdle = new Array();
+	var earliestIdle = [];
+	var latestIdle = [];
 
 	socket.emit('setup_msg', setup_obj);
 	// prime the pump by getting the first busy, idle data in the cpus array
