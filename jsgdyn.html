@@ -84,7 +84,8 @@
 				parentDiv.insertBefore(p,cpuh2);
 
 				var h2 = document.createElement("h2");
-				var h2text = document.createTextNode('Uptime: ' + setup_obj.uptime + 'secs');
+				h2.setAttribute('id', 'uptime');
+				var h2text = document.createTextNode('Uptime: ' + setup_obj.uptime);
 				h2.appendChild(h2text);
 				parentDiv = document.getElementById("info");
 				parentDiv.appendChild(h2);
@@ -121,12 +122,14 @@
 				console.log('Got broadcast_msg.', mydata);
 				for (var i = 0, l = mydata.cpus.length; i < l; i++) {
 					//console.log('in for: i = ' + i + ', l = ' + l);
-					console.log('cpu idle/busy = ' + mydata.cpus[i].usage.idle + ' ' + mydata.cpus[i].usage.busy);
+					//console.log('cpu idle/busy = ' + mydata.cpus[i].usage.idle + ' ' + mydata.cpus[i].usage.busy);
 					data.setValue(i * 2, 1, mydata.cpus[i].usage.busy);
 					data.setValue(i * 2 + 1, 1, mydata.cpus[i].usage.idle);
 					//data.setValue(column, 1, 89);
 				}
 				chart.draw(data, options);
+				el = document.getElementById("uptime");
+				el.innerHTML = 'Uptime: ' + mydata.uptime;
 			});
 		}
 	</script>

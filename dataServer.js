@@ -2,6 +2,7 @@ var app = require('http').createServer(handler),
 	fs = require('fs'),
 	os = require('os'),
 	sleep = require('sleep'),
+	sprintf = require("sprintf-js").sprintf,
 	io = require('socket.io').listen(app);
 
 var updateInterval = 1000;	// in milliseconds
@@ -15,29 +16,31 @@ setup_obj.hostname = os.hostname();
 setup_obj.platform = os.platform();
 setup_obj.type = os.type();
 setup_obj.release = os.release();
-setup_obj.uptime = os.uptime();
+setup_obj.uptime = convertUptime(os.uptime());
 setup_obj.totalmem = os.totalmem();
 setup_obj.freemem = os.freemem();
 setup_obj.networkInterfaces = os.networkInterfaces();
 setup_obj.cpus = os.cpus();
 setup_obj.loadavg = os.loadavg();
+//console.log(setup_obj);
+//console.log(setup_obj.uptime);
 //throw '';
 
 app.listen(8080);
 
-function convertMS(ms) {
-  var d, h, m, s;
-  s = Math.floor(ms / 1000);
+function convertUptime(s) {
+  var d, h, m;
+  s = Math.floor(s);
   m = Math.floor(s / 60);
   s = s % 60;
   h = Math.floor(m / 60);
   m = m % 60;
   d = Math.floor(h / 24);
   h = h % 24;
-  return { d: d, h: h, m: m, s: s };
+  return  sprintf('%ud %02uh %02um %02us', d, h, m, s) ;
 }
-console.log(convertMS(setup_obj.uptime * 1000));
-throw '';
+//throw '';
+
 function handler (req, res) {
 	// upon first connect send the client code
 	fs.readFile(__dirname + '/jsgdyn.html', function (err, data) {
@@ -79,6 +82,7 @@ io.sockets.on('connection', function(socket) {
 			cpus[i] = {usage: {busy: busy, idle: idle}};
 		}
 		myData.cpus = cpus;
+		myData.uptime = convertUptime(os.uptime());
 		io.sockets.volatile.emit('broadcast_msg', myData);
 	}, updateInterval);
 });
