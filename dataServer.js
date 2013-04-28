@@ -2,28 +2,44 @@ var app = require('http').createServer(handler),
 	fs = require('fs'),
 	os = require('os'),
 	sleep = require('sleep'),
+	sprintf = require("sprintf-js").sprintf,
 	io = require('socket.io').listen(app);
 
 var updateInterval = 1000;	// in milliseconds
 var memToGB = 1024 * 1024 * 1024;	// convert bytes to gigs
-var cpus = new Array();
-var myData = new Object;
-var setup_obj = new Object;
-var usage = new Object;
+var cpus = [];
+var myData = {};
+var setup_obj = {};
+var usage = {};
 
 setup_obj.hostname = os.hostname();
 setup_obj.platform = os.platform();
 setup_obj.type = os.type();
 setup_obj.release = os.release();
-setup_obj.uptime = os.uptime();
+setup_obj.uptime = convertUptime(os.uptime());
 setup_obj.totalmem = os.totalmem();
 setup_obj.freemem = os.freemem();
 setup_obj.networkInterfaces = os.networkInterfaces();
 setup_obj.cpus = os.cpus();
 setup_obj.loadavg = os.loadavg();
+//console.log(setup_obj);
+//console.log(setup_obj.uptime);
 //throw '';
 
 app.listen(8080);
+
+function convertUptime(s) {
+  var d, h, m;
+  s = Math.floor(s);
+  m = Math.floor(s / 60);
+  s = s % 60;
+  h = Math.floor(m / 60);
+  m = m % 60;
+  d = Math.floor(h / 24);
+  h = h % 24;
+  return  sprintf('%ud %02uh %02um %02us', d, h, m, s) ;
+}
+//throw '';
 
 function handler (req, res) {
 	// upon first connect send the client code
@@ -39,8 +55,8 @@ function handler (req, res) {
 }
 // create a websocket
 io.sockets.on('connection', function(socket) {
-	var earliestIdle = new Array();
-	var latestIdle = new Array();
+	var earliestIdle = [];
+	var latestIdle = [];
 
 	socket.emit('setup_msg', setup_obj);
 	// prime the pump by getting the first busy, idle data in the cpus array
@@ -66,6 +82,7 @@ io.sockets.on('connection', function(socket) {
 			cpus[i] = {usage: {busy: busy, idle: idle}};
 		}
 		myData.cpus = cpus;
+		myData.uptime = convertUptime(os.uptime());
 		io.sockets.volatile.emit('broadcast_msg', myData);
 	}, updateInterval);
 });
