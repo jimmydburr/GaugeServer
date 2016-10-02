@@ -14,4 +14,4 @@ Now point your browser at http://localhost:8080 and enjoy the show.
 
 ## Animated GIF of what it looks like on my laptop
 
-[[https://github.com/jimmydburr/GaugeServer/blob/master/gaugeServer.gif]]
+![gauge server demo](https://raw.githubusercontent.com/jimmydburr/GaugeServer/blob/master/gaugeServer.gif)
